@@ -36,6 +36,10 @@ uv pip sync pyproject.toml
 playwright install
 ```
 
+5. Install OpenLLaMA:
+
+Follow the instructions in the [OpenLLaMA website](https://ollama.com/download) to install the OpenLLaMA API server.
+
 ## Development Setup
 
 For development, install additional development dependencies:
