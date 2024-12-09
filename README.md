@@ -65,6 +65,17 @@ OPENLLAMA_API_URL=http://localhost:8080
 FLASK_ENV=development
 ```
 
+## In Action
+
+![www2any](docs/screenshot_1.png) | ![www2any](docs/screenshot_2.png)
+
+## Testing
+
+Run tests using pytest:
+```bash
+uv run pytest
+```
+
 ## Development
 
 Ruff is used for code formatting, linting, and import sorting. Here are the common commands:
