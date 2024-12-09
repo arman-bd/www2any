@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>www2any - Web Content Transformer</title>
+    <!-- Tailwind CSS CDN -->
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      .hidden {
+        display: none;
+      }
+      pre {
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .loading {
+        animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+      textarea {
+        overflow: hidden;
+        resize: none;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <div class="max-w-4xl mx-auto p-6 space-y-8">
+      <div class="text-center space-y-2">
+        <h1 class="text-4xl font-bold text-gray-800">www2any</h1>
+        <p class="text-gray-600">
+          Transform web content into structured formats
+        </p>
+      </div>
+
+      <div class="space-y-6">
+        <!-- URL Input -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700"
+            >Website URL</label
+          >
+          <input
+            type="url"
+            id="url"
+            placeholder="https://example.com"
+            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            required
+          />
+        </div>
+
+        <!-- Template Selection -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700"
+            >Choose Template</label
+          >
+          <select
+            id="template"
+            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Custom Template</option>
+            <option value="executive_summary">Executive Summary</option>
+            <option value="article_analysis">Article Analysis</option>
+            <option value="product_specs">Product Specifications</option>
+            <option value="meeting_notes">Meeting Notes</option>
+          </select>
+        </div>
+
+        <!-- Format Selection -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700"
+            >Output Format</label
+          >
+          <select
+            id="format"
+            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="summary">Summary</option>
+            <option value="json">JSON</option>
+            <option value="bullet_points">Bullet Points</option>
+            <option value="markdown">Markdown</option>
+          </select>
+        </div>
+
+        <!-- Custom Instructions -->
+        <div class="space-y-2">
+          <label class="block text-sm font-medium text-gray-700"
+            >Custom Instructions</label
+          >
+          <textarea
+            id="customPrompt"
+            class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500"
+            placeholder="Enter custom instructions for content transformation..."
+            rows="1"
+          ></textarea>
+        </div>
+
+        <!-- Custom JSON Fields -->
+        <div id="jsonFieldsSection" class="space-y-4 hidden">
+          <div class="flex items-center justify-between">
+            <label class="block text-sm font-medium text-gray-700"
+              >Custom JSON Fields</label
+            >
+            <button
+              id="toggleFields"
+              class="text-sm text-blue-600 hover:text-blue-800"
+            >
+              Show Fields
+            </button>
+          </div>
+
+          <div id="customFields" class="space-y-4 hidden">
+            <div id="fieldsContainer" class="space-y-4">
+              <!-- Fields will be added here dynamically -->
+            </div>
+            <button
+              id="addField"
+              class="flex items-center gap-2 text-blue-600 hover:text-blue-800"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 4v16m8-8H4"
+                ></path>
+              </svg>
+              Add Field
+            </button>
+          </div>
+        </div>
+
+        <!-- Process Button -->
+        <button
+          id="processButton"
+          class="w-full py-3 px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+        >
+          Transform Content
+        </button>
+
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="hidden">
+          <div class="flex items-center justify-center p-8 space-y-4">
+            <div class="flex flex-col items-center gap-4">
+              <div
+                class="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"
+              ></div>
+              <div class="text-gray-600">Processing your request...</div>
+              <div class="text-sm text-gray-500">
+                This might take upto a minute
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error Display -->
+        <div id="error" class="hidden">
+          <div class="bg-red-50 border-l-4 border-red-400 p-4">
+            <div class="flex">
+              <div class="flex-shrink-0">
+                <svg
+                  class="h-5 w-5 text-red-400"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </div>
+              <div class="ml-3">
+                <p id="errorText" class="text-sm text-red-700"></p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Result Display -->
+        <div id="result" class="mt-8 space-y-4 hidden">
+          <div class="flex items-center justify-between">
+            <h2 class="text-xl font-semibold flex items-center gap-2">
+              <svg
+                class="w-5 h-5 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+              Result
+            </h2>
+            <button
+              id="copyButton"
+              class="flex items-center gap-2 text-gray-600 hover:text-gray-800"
+            >
+              <svg
+                class="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"
+                ></path>
+              </svg>
+              Copy
+            </button>
+          </div>
+          <pre
+            id="output"
+            class="bg-white p-6 rounded-lg shadow-lg border border-gray-200 overflow-x-auto"
+          ></pre>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Predefined templates
+      const predefinedTemplates = {
+        executive_summary: {
+          format: "summary",
+          prompt:
+            "Create a concise executive summary with these sections:\n- Key Points\n- Business Impact\n- Recommendations",
+        },
+        article_analysis: {
+          format: "markdown",
+          prompt:
+            "Analyze this article with:\n- Main Arguments\n- Evidence Quality\n- Potential Biases\n- Key Takeaways",
+        },
+        product_specs: {
+          format: "json",
+          prompt:
+            "Extract product specifications into JSON with these keys:\n{\n  name: string,\n  price: number,\n  features: string[],\n  specifications: object\n}",
+        },
+        meeting_notes: {
+          format: "bullet_points",
+          prompt:
+            "Transform into structured meeting notes:\n- Attendees\n- Key Decisions\n- Action Items\n- Next Steps",
+        },
+      };
+
+      // DOM Elements
+      const elements = {
+        url: document.getElementById("url"),
+        template: document.getElementById("template"),
+        format: document.getElementById("format"),
+        customPrompt: document.getElementById("customPrompt"),
+        jsonFieldsSection: document.getElementById("jsonFieldsSection"),
+        toggleFields: document.getElementById("toggleFields"),
+        customFields: document.getElementById("customFields"),
+        fieldsContainer: document.getElementById("fieldsContainer"),
+        addField: document.getElementById("addField"),
+        processButton: document.getElementById("processButton"),
+        error: document.getElementById("error"),
+        errorText: document.getElementById("errorText"),
+        result: document.getElementById("result"),
+        output: document.getElementById("output"),
+        copyButton: document.getElementById("copyButton"),
+        loadingIndicator: document.getElementById("loadingIndicator"),
+      };
+
+      // Event Listeners
+      elements.template.addEventListener("change", handleTemplateChange);
+      elements.format.addEventListener("change", handleFormatChange);
+      elements.toggleFields.addEventListener("click", toggleCustomFields);
+      elements.addField.addEventListener("click", addCustomField);
+      elements.processButton.addEventListener("click", processUrl);
+      elements.copyButton.addEventListener("click", copyResult);
+
+      // Template Change Handler
+      function handleTemplateChange(e) {
+        const templateName = e.target.value;
+        if (templateName && predefinedTemplates[templateName]) {
+          const template = predefinedTemplates[templateName];
+          elements.format.value = template.format;
+          elements.customPrompt.value = template.prompt;
+          autoResize(elements.customPrompt);
+          handleFormatChange({ target: { value: template.format } });
+        } else {
+          // Clear custom prompt when selecting "Custom Template" or empty value
+          elements.customPrompt.value = "";
+          autoResize(elements.customPrompt);
+        }
+      }
+
+      // Format Change Handler
+      function handleFormatChange(e) {
+        const format = e.target.value;
+        elements.jsonFieldsSection.classList.toggle(
+          "hidden",
+          format !== "json"
+        );
+      }
+
+      // Toggle Custom Fields
+      function toggleCustomFields() {
+        const isHidden = elements.customFields.classList.contains("hidden");
+        elements.customFields.classList.toggle("hidden");
+        elements.toggleFields.textContent = isHidden
+          ? "Hide Fields"
+          : "Show Fields";
+      }
+
+      // Add Custom Field
+      function addCustomField() {
+        const fieldDiv = document.createElement("div");
+        fieldDiv.className = "flex gap-4";
+        fieldDiv.innerHTML = `
+                <input 
+                    placeholder="Field name" 
+                    class="flex-1 p-2 border rounded"
+                />
+                <input 
+                    placeholder="Description" 
+                    class="flex-1 p-2 border rounded"
+                />
+                <button 
+                    class="p-2 text-red-600 hover:text-red-800"
+                    onclick="this.parentElement.remove()"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
+            `;
+        elements.fieldsContainer.appendChild(fieldDiv);
+      }
+
+      // Process URL
+      async function processUrl() {
+        const url = elements.url.value;
+        if (!url) return;
+
+        // Show loading state
+        elements.processButton.disabled = true;
+        elements.processButton.classList.add("opacity-50");
+        elements.loadingIndicator.classList.remove("hidden");
+        elements.error.classList.add("hidden");
+        elements.result.classList.add("hidden");
+
+        // Scroll to the result section
+        elements.loadingIndicator.scrollIntoView({ behavior: "smooth" });
+
+        try {
+          // Gather custom fields if visible
+          let customFields = [];
+          if (!elements.customFields.classList.contains("hidden")) {
+            const fieldDivs = elements.fieldsContainer.children;
+            for (const div of fieldDivs) {
+              const [keyInput, descInput] = div.getElementsByTagName("input");
+              if (keyInput.value) {
+                customFields.push({
+                  key: keyInput.value,
+                  description: descInput.value,
+                });
+              }
+            }
+          }
+
+          const response = await fetch("/process", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              url: url,
+              format: elements.format.value,
+              prompt: elements.customPrompt.value,
+              customFields: customFields.length > 0 ? customFields : undefined,
+            }),
+          });
+
+          const data = await response.json();
+          if (!response.ok) throw new Error(data.error);
+
+          // Show result
+          elements.output.textContent = data.result;
+          elements.result.classList.remove("hidden");
+
+          // Scroll to the result section
+          elements.result.scrollIntoView({ behavior: "smooth" });
+        } catch (err) {
+          elements.errorText.textContent = err.message;
+          elements.error.classList.remove("hidden");
+        } finally {
+          // Hide loading state
+          elements.processButton.disabled = false;
+          elements.processButton.classList.remove("opacity-50");
+          elements.loadingIndicator.classList.add("hidden");
+          elements.processButton.textContent = "Transform Content";
+        }
+      }
+
+      // Auto-resize function for textarea
+      function autoResize(textarea) {
+        textarea.style.height = "auto";
+        textarea.style.height = textarea.scrollHeight + "px";
+      }
+
+      // Add auto-resize to customPrompt
+      elements.customPrompt.addEventListener("input", function () {
+        autoResize(this);
+      });
+
+      // Initial resize for any default content
+      window.addEventListener("load", () => {
+        autoResize(elements.customPrompt);
+      });
+
+      // Copy Result
+      function copyResult() {
+        navigator.clipboard.writeText(elements.output.textContent);
+        elements.copyButton.innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Copied!
+            `;
+        setTimeout(() => {
+          elements.copyButton.innerHTML = `
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path>
+                    </svg>
+                    Copy
+                `;
+        }, 2000);
+      }
+
+      // Initialize the first custom field
+      addCustomField();
+    </script>
+  </body>
+</html>

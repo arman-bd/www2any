@@ -1,0 +1,92 @@
+[project]
+name = "www2any"
+version = "0.0.1"
+description = "A web application that scrapes web pages, extracts main content, and uses OpenLLaMA to convert the content into specified formats."
+authors = [
+    { name = "Arman Hossain", web = "https://github.com/arman-bd" },
+]
+dependencies = [
+    "playwright>=1.49.0",
+    "flask[async]>=3.1.0",
+    "beautifulsoup4>=4.12.3",
+    "requests>=2.32.3",
+    "ollama>=0.4.4",
+]
+requires-python = ">=3.9"
+readme = "README.md"
+license = { text = "MIT" }
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pytest>=8.3.4",
+    "pytest-asyncio>=0.24.0",
+    "ruff>=0.8.2",
+]
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[project.scripts]
+www2any = "src.app:main"
+
+[tool.ruff]
+# Enable pycodestyle (`E`), Pyflakes (`F`), and import sorting (`I`)
+select = ["E", "F", "I", "N", "W", "UP", "B", "C4", "PL", "RUF"]
+ignore = []
+
+# Line length limit
+line-length = 88
+
+# Assume Python 3.9
+target-version = "py39"
+
+[tool.ruff.lint]
+# Enable auto-fixes for these rules
+fixable = ["ALL"]
+
+# Rules for import sorting
+extend-select = ["I"]
+
+[tool.ruff.format]
+# Format code with ruff
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+# Ruff's isort configuration
+force-single-line = false
+lines-after-imports = 2
+known-first-party = ["www2any"]
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q"
+testpaths = [
+    "tests",
+]
+python_files = ["test_*.py"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "**/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "pass",
+    "raise AssertionError",
+]
