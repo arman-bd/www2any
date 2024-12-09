@@ -71,7 +71,8 @@ FLASK_ENV=development
 
 ## In Action
 
-![www2any](docs/screenshot_1.png) | ![www2any](docs/screenshot_2.png)
+| ![www2any](docs/screenshot_1.png) | ![www2any](docs/screenshot_2.png) |
+|-----------------------------------|-----------------------------------|
 
 ## Testing
 
